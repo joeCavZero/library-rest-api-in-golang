@@ -1,0 +1,6 @@
+tmp/
+db/
+
+*.exe
+*.dll
+*.so
