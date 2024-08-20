@@ -4,3 +4,5 @@ db/
 *.exe
 *.dll
 *.so
+
+main.go
