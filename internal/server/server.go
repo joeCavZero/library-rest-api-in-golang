@@ -10,7 +10,7 @@ import (
 
 func StartServer() {
 
-	engine := gin.Default()
+	engine := gin.New()
 
 	router.SetupRoute(engine)
 
