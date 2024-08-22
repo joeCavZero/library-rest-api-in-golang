@@ -60,12 +60,15 @@ func CreateBook(book model.Book) (model.BookResponse, error) {
 		book.Title, book.Author, book.Location,
 	)
 	if err != nil {
-		return book_response, err
+		return model.BookResponse{}, err
 	}
 
 	lk.Info("Book inserted into table successfully")
 
 	book_response.Id, err = result.LastInsertId()
+	if err != nil {
+		return model.BookResponse{}, err
+	}
 	return book_response, nil
 }
 
@@ -76,20 +79,20 @@ func CreateBook(book model.Book) (model.BookResponse, error) {
  * Query is used for queries that return rows,
  */
 
-func GetBooks() ([]model.Book, error) {
+func GetBooks() ([]model.BookResponse, error) {
 	lk := logkit.New("ReadBooks")
 
-	rows, err := db.Query("SELECT title, author, location FROM books")
+	rows, err := db.Query("SELECT id, title, author, location FROM books")
 	if err != nil {
 		lk.Error(err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	var books []model.Book
+	var books []model.BookResponse
 	for rows.Next() {
-		var new_book model.Book
-		err = rows.Scan(&new_book.Title, &new_book.Author, &new_book.Location)
+		var new_book model.BookResponse
+		err = rows.Scan(&new_book.Id, &new_book.Title, &new_book.Author, &new_book.Location)
 		if err != nil {
 			lk.Error(err)
 			return nil, err
@@ -100,4 +103,20 @@ func GetBooks() ([]model.Book, error) {
 	lk.Info("Books read from table successfully")
 	return books, nil
 
+}
+
+func GetBookById(id uint32) (model.Book, error) {
+	lk := logkit.New("Get-Book-By-Id")
+	lk.Infof("id: %d", id)
+	var new_book model.Book
+	row := db.QueryRow("SELECT title, author, location FROM books WHERE id = ?", id)
+
+	lk.Infof("row: %v", row)
+
+	err := row.Scan(&new_book.Title, &new_book.Author, &new_book.Location)
+	if err != nil {
+		return model.Book{}, err
+	}
+
+	return new_book, nil
 }

@@ -8,8 +8,10 @@ import (
 func SetupRoute(engine *gin.Engine) {
 	api := engine.Group("/api")
 	{
-		api.GET("/books", handler.ReadBooks)
+		api.GET("/books", handler.ReadAllBooks)
 
 		api.POST("/books", handler.CreateBook)
+
+		api.GET("/books/:id", handler.ReadBook)
 	}
 }

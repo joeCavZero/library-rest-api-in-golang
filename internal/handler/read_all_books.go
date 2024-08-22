@@ -8,7 +8,7 @@ import (
 	"github.com/joeCavZero/library-rest-api-in-golang/internal/util/logkit"
 )
 
-func ReadBooks(ctx *gin.Context) {
+func ReadAllBooks(ctx *gin.Context) {
 	lk := logkit.New("ReadBooks GET")
 	books, err := database.GetBooks()
 	if err != nil {
