@@ -8,8 +8,7 @@ import (
 	"github.com/joeCavZero/library-rest-api-in-golang/internal/database"
 )
 
-func ReadBook(ctx *gin.Context) {
-	//---- getting the id from the url
+func DeleteBook(ctx *gin.Context) {
 	aux_id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		sendError(ctx, http.StatusBadRequest, err)
@@ -17,15 +16,11 @@ func ReadBook(ctx *gin.Context) {
 	}
 	id := uint32(aux_id)
 
-	//---- getting the book from the database
-	new_book, err := database.GetBookById(id)
+	err = database.DeleteBookById(id)
 	if err != nil {
 		sendError(ctx, http.StatusInternalServerError, err)
 		return
 	}
-	ctx.JSON(
-		http.StatusOK,
-		new_book,
-	)
 
+	ctx.Status(http.StatusNoContent)
 }

@@ -46,8 +46,6 @@ func setupDatabase() {
 		panic(err)
 	}
 
-	lk.Info("Table books created successfully")
-
 }
 
 func CreateBook(book model.Book) (model.BookResponse, error) {
@@ -65,10 +63,13 @@ func CreateBook(book model.Book) (model.BookResponse, error) {
 
 	lk.Info("Book inserted into table successfully")
 
-	book_response.Id, err = result.LastInsertId()
+	last_ins_id, err := result.LastInsertId()
 	if err != nil {
 		return model.BookResponse{}, err
 	}
+
+	book_response.Id = uint32(last_ins_id)
+
 	return book_response, nil
 }
 
@@ -119,4 +120,29 @@ func GetBookById(id uint32) (model.Book, error) {
 	}
 
 	return new_book, nil
+}
+
+func DeleteBookById(id uint32) error {
+	_, err := db.Exec("DELETE FROM books WHERE id = ?", id)
+	return err
+}
+
+func UpdateBookById(id uint32, book model.Book) (model.BookResponse, error) {
+	query := "UPDATE books SET title = ?, author = ?, location = ? WHERE id = ?"
+	_, err := db.Exec(query, book.Title, book.Author, book.Location, id)
+	if err != nil {
+		return model.BookResponse{}, err
+	}
+
+	new_book, err := GetBookById(id)
+	if err != nil {
+		return model.BookResponse{}, err
+	}
+
+	response := model.BookResponse{
+		Id:   id,
+		Book: new_book,
+	}
+
+	return response, nil
 }

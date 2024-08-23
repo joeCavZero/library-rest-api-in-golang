@@ -16,22 +16,24 @@ func CreateBook(ctx *gin.Context) {
 
 	err := ctx.BindJSON(&new_book)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, model.NewResponseError(err.Error()))
-
+		sendError(ctx, http.StatusBadRequest, err)
 		lk.Error(err)
 		return
 	}
-	lk.Debugf("new_book: %v", new_book)
+	lk.Infof("new_book: %v", new_book)
 
 	err = new_book.Validate()
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, model.NewResponseError(err.Error()))
+		sendError(ctx, http.StatusBadRequest, err)
+		lk.Error(err)
 		return
 	}
 
 	book_response, err := database.CreateBook(new_book)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, model.NewResponseError(err.Error()))
+		sendError(ctx, http.StatusInternalServerError, err)
+		lk.Error(err)
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, book_response)

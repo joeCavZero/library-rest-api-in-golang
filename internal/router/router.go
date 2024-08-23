@@ -13,5 +13,9 @@ func SetupRoute(engine *gin.Engine) {
 		api.POST("/books", handler.CreateBook)
 
 		api.GET("/books/:id", handler.ReadBook)
+
+		api.PUT("/books/:id", handler.UpdateBook)
+
+		api.DELETE("/books/:id", handler.DeleteBook)
 	}
 }

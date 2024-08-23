@@ -10,12 +10,12 @@ type Book struct {
 
 func (b Book) Validate() error {
 	if b.Title == "" || b.Author == "" || b.Location == "" {
-		return errors.New("Invalid book camp fiels")
+		return errors.New("invalid book camp fields")
 	}
 	return nil
 }
 
 type BookResponse struct {
-	Id int64 `json:"id"`
+	Id uint32 `json:"id"`
 	Book
 }
