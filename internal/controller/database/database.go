@@ -5,34 +5,34 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
+	"github.com/joeCavZero/library-rest-api-in-golang/config"
 	"github.com/joeCavZero/library-rest-api-in-golang/internal/model"
 	"github.com/joeCavZero/library-rest-api-in-golang/internal/util/logkit"
 )
 
-var db *sql.DB
-
-func init() {
-	setupDatabase()
+type databaseController struct {
+	db *sql.DB
 }
 
-func setupDatabase() {
-	lk := logkit.New("setup database")
-
+func NewDatabaseController() *databaseController {
+	lk := logkit.New("NEW DATABASE CONTROLLER")
 	var err error
-	db, err = sql.Open("sqlite3", "./db/library.db")
+
+	controller := databaseController{}
+	controller.db, err = sql.Open("sqlite3", config.DB_PATH)
 	if err != nil {
 		lk.Error(err)
 		panic(err)
 	}
 
-	if err = db.Ping(); err != nil {
+	if err = controller.db.Ping(); err != nil {
 		lk.Error(err)
 		panic(err)
 	}
 
-	lk.Info("Database connected")
+	lk.Info("Database connected successfully")
 
-	_, err = db.Exec(
+	_, err = controller.db.Exec(
 		`CREATE TABLE IF NOT EXISTS books (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			title VARCHAR(50) NOT NULL,
@@ -46,14 +46,16 @@ func setupDatabase() {
 		panic(err)
 	}
 
+	return &controller
+
 }
 
-func CreateBook(book model.Book) (model.BookResponse, error) {
+func (d *databaseController) CreateBook(book model.Book) (model.BookResponse, error) {
 	lk := logkit.New("CreateBook")
 
 	book_response := model.BookResponse{Book: book}
 
-	result, err := db.Exec(
+	result, err := d.db.Exec(
 		`INSERT INTO books (title, author, location) VALUES (?,?,?)`,
 		book.Title, book.Author, book.Location,
 	)
@@ -80,10 +82,10 @@ func CreateBook(book model.Book) (model.BookResponse, error) {
  * Query is used for queries that return rows,
  */
 
-func GetBooks() ([]model.BookResponse, error) {
+func (d *databaseController) GetBooks() ([]model.BookResponse, error) {
 	lk := logkit.New("ReadBooks")
 
-	rows, err := db.Query("SELECT id, title, author, location FROM books")
+	rows, err := d.db.Query("SELECT id, title, author, location FROM books")
 	if err != nil {
 		lk.Error(err)
 		return nil, err
@@ -106,11 +108,11 @@ func GetBooks() ([]model.BookResponse, error) {
 
 }
 
-func GetBookById(id uint32) (model.Book, error) {
+func (d *databaseController) GetBookById(id uint32) (model.Book, error) {
 	lk := logkit.New("Get-Book-By-Id")
 	lk.Infof("id: %d", id)
 	var new_book model.Book
-	row := db.QueryRow("SELECT title, author, location FROM books WHERE id = ?", id)
+	row := d.db.QueryRow("SELECT title, author, location FROM books WHERE id = ?", id)
 
 	lk.Infof("row: %v", row)
 
@@ -122,19 +124,19 @@ func GetBookById(id uint32) (model.Book, error) {
 	return new_book, nil
 }
 
-func DeleteBookById(id uint32) error {
-	_, err := db.Exec("DELETE FROM books WHERE id = ?", id)
+func (d *databaseController) DeleteBookById(id uint32) error {
+	_, err := d.db.Exec("DELETE FROM books WHERE id = ?", id)
 	return err
 }
 
-func UpdateBookById(id uint32, book model.Book) (model.BookResponse, error) {
+func (d *databaseController) UpdateBookById(id uint32, book model.Book) (model.BookResponse, error) {
 	query := "UPDATE books SET title = ?, author = ?, location = ? WHERE id = ?"
-	_, err := db.Exec(query, book.Title, book.Author, book.Location, id)
+	_, err := d.db.Exec(query, book.Title, book.Author, book.Location, id)
 	if err != nil {
 		return model.BookResponse{}, err
 	}
 
-	new_book, err := GetBookById(id)
+	new_book, err := d.GetBookById(id)
 	if err != nil {
 		return model.BookResponse{}, err
 	}
